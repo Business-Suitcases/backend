@@ -1,0 +1,7 @@
+.DS_Store
+venv/
+.gitignore
+LICENSE
+README.md
+*.log
+*/__init__.py

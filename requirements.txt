@@ -1,0 +1,6 @@
+fastapi[all]
+sqlalchemy
+alembic
+psycopg2-binary
+fastapi-cache2[redis]
+asyncpg
