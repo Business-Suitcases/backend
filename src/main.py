@@ -5,7 +5,7 @@ from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 from src.config import REDIS_HOST, REDIS_PORT
 from src.auth.base_config import auth_backend
-import fastapi_users
+from src.auth.base_config import fastapi_users
 
 
 app = FastAPI(
