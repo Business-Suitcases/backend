@@ -1,6 +1,12 @@
-fastapi[all]
-sqlalchemy
-alembic
+fastapi[all]~=0.109.2
+sqlalchemy~=2.0.27
+alembic~=1.13.1
 psycopg2-binary
 fastapi-cache2[redis]
 asyncpg
+fastapi-users-db-sqlalchemy
+fastapi_user_auth==0.4.2
+fastapi-users[sqlalchemy]
+redis~=4.6.0
+python-dotenv~=1.0.1
+setuptools
