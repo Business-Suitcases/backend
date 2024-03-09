@@ -5,9 +5,9 @@ from src.auth.manager import get_user_manager
 from src.auth.models import User
 from src.config import SECRET_AUTH
 
-half_year = 15768000
+half_year = 3600
 
-cookie_transport = CookieTransport(cookie_name="bonds", cookie_max_age=half_year)
+cookie_transport = CookieTransport(cookie_name="hts", cookie_max_age=half_year)
 
 
 def get_jwt_strategy() -> JWTStrategy:

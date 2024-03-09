@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Depends, Request
+from fastapi import Depends, Request, Response
 from fastapi_users import (BaseUserManager, IntegerIDMixin, exceptions, models,
                            schemas)
 
@@ -12,10 +12,18 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = SECRET_AUTH
     verification_token_secret = SECRET_AUTH
 
+    # Этот метод вызывается после регистрации пользователя.
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"User {user.id} has registered.")
 
-    # Этот метод вызывается после подтверждения пользователя.
+
+    # Этот метод вызывается после входа пользователя.
+    async def on_after_login(self, user: User, request: Request | None = None, response: Response | None = None) -> None:
+        print(f"User {user.id} has logged in.")
+        return await super().on_after_login(user, request, response)
+
+
+
     async def create(
             self,
             user_create: schemas.UC,
@@ -35,7 +43,6 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         )
         password = user_dict.pop("password")
         user_dict["hashed_password"] = self.password_helper.hash(password)
-        user_dict["role_id"] = 1
 
         created_user = await self.user_db.create(user_dict)
 
