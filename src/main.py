@@ -1,15 +1,31 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
-from config import REDIS_HOST, REDIS_PORT
+from src.auth.schemas import UserCreate, UserRead
+from src.config import REDIS_HOST, REDIS_PORT
+from src.auth.base_config import auth_backend
+from src.auth.base_config import fastapi_users
 
 
 app = FastAPI(
     title="HomeTasks Application"
 )
+
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend, requires_verification=True),
+    prefix="/auth",
+    tags=["Auth"],
+)
+
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["Auth"],
+)
+
+current_user = fastapi_users.current_user()
 
 
 origins = [

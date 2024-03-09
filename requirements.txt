@@ -1,6 +1,10 @@
-fastapi[all]
+fastapi
 sqlalchemy
 alembic
+sqlmodel
 psycopg2-binary
 fastapi-cache2[redis]
 asyncpg
+fastapi-users
+redis
+python-dotenv
