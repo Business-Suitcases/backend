@@ -1,7 +1,6 @@
 from typing import Optional
 
 from fastapi_users import schemas
-from sqlalchemy import true
 
 
 class UserRead(schemas.BaseUser[int]):
@@ -25,3 +24,7 @@ class UserCreate(schemas.BaseUserCreate):
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     is_verified: Optional[bool] = True
+
+
+class UserUpdate(schemas.BaseUserUpdate):
+    tg_id: int = None

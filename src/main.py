@@ -4,9 +4,9 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 from src.auth.schemas import UserCreate, UserRead
-from src.config import REDIS_HOST, REDIS_PORT
-from src.auth.base_config import auth_backend
-from src.auth.base_config import fastapi_users
+from src.config import REDIS_HOST, REDIS_PORT, SECRET_AUTH
+from src.auth.base_config import auth_backend, fastapi_users
+from src.auth.manager import google_oauth_client
 
 
 app = FastAPI(
@@ -23,6 +23,12 @@ app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
     prefix="/auth",
     tags=["Auth"],
+)
+
+app.include_router(
+    fastapi_users.get_oauth_router(google_oauth_client, auth_backend, SECRET_AUTH),
+    prefix="/auth/google",
+    tags=["Google OAuth2"],
 )
 
 current_user = fastapi_users.current_user()

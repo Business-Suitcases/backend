@@ -1,11 +1,16 @@
 from typing import Optional
 from fastapi import Depends, Request, Response
-from fastapi_users import (BaseUserManager, IntegerIDMixin, exceptions, models,
-                           schemas)
-
+from fastapi_users import (BaseUserManager, IntegerIDMixin, exceptions, models, schemas)
 from src.auth.models import User
 from src.auth.utils import get_user_db
-from src.config import SECRET_AUTH
+from httpx_oauth.clients.google import GoogleOAuth2
+from src.config import SECRET_AUTH, GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET
+
+
+google_oauth_client = GoogleOAuth2(
+    GOOGLE_OAUTH_CLIENT_ID,
+    GOOGLE_OAUTH_CLIENT_SECRET,
+)
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):

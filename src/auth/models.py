@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyBaseOAuthAccountTableUUID
 from sqlalchemy import (TIMESTAMP, Boolean, Column, String, Integer)
 from src.database import Base
 
@@ -17,3 +17,5 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     is_active: bool = Column(Boolean, default=True, nullable=False)
     is_verified: bool = Column(Boolean, default=True, nullable=False)
 
+class OAuthAccount(SQLAlchemyBaseOAuthAccountTableUUID, Base):
+    pass
