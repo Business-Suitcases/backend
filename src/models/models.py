@@ -12,4 +12,4 @@ class Tasks(Base):
     lesson = Column(String(255), nullable=False)
     type = Column(String(255), nullable=False, default="ДЗ")
     deadline = Column(Date)
-    user_id = Column(Integer, ForeignKey(User.id))
+    user_id = Column(Integer, ForeignKey("user.id"))
