@@ -1,6 +1,7 @@
+import uuid
 from typing import Optional
 from fastapi import Depends, Request, Response
-from fastapi_users import (BaseUserManager, IntegerIDMixin, exceptions, models, schemas)
+from fastapi_users import (BaseUserManager, UUIDIDMixin, exceptions, models, schemas)
 from src.auth.models import User
 from src.auth.utils import get_user_db
 from httpx_oauth.clients.google import GoogleOAuth2
@@ -13,7 +14,7 @@ google_oauth_client = GoogleOAuth2(
 )
 
 
-class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
+class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = SECRET_AUTH
     verification_token_secret = SECRET_AUTH
 
@@ -26,6 +27,13 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     async def on_after_login(self, user: User, request: Request | None = None, response: Response | None = None) -> None:
         print(f"User {user.id} has logged in.")
         return await super().on_after_login(user, request, response)
+    
+    # Этот метод вызывается после выхода пользователя.
+    async def on_after_request_verify(
+        self, user: User, token: str, request: Optional[Request] = None
+    ):
+        print(f"Verification requested for user {user.id}. Verification token: {token}")
+
 
 
 

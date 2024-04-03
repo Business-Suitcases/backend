@@ -1,6 +1,8 @@
+import fastapi_users_db_sqlalchemy.generics
 from sqlalchemy import Integer, String, ForeignKey, Column, Date
 from src.auth.models import User
 from src.database import Base
+import fastapi_users_db_sqlalchemy
 
 
 class Tasks(Base):
@@ -12,4 +14,4 @@ class Tasks(Base):
     lesson = Column(String(255), nullable=False)
     type = Column(String(255), nullable=False, default="ДЗ")
     deadline = Column(Date)
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(fastapi_users_db_sqlalchemy.generics.GUID(), ForeignKey('user.id'))
