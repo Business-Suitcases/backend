@@ -36,4 +36,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     is_verified: bool - верифицирован ли пользователь
     """
 
+    tgid = Column(Integer)
+    username = Column(String(255), nullable=True)
+
     oauth_accounts: Mapped[List[OAuthAccount]] = relationship("OAuthAccount", lazy="joined")
