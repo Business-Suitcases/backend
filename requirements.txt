@@ -5,6 +5,8 @@ sqlmodel
 psycopg2-binary
 fastapi-cache2[redis]
 asyncpg
-fastapi-users
+fastapi-users[sqlalchemy,oauth]
 redis
 python-dotenv
+bcrypt==4.0.1
+passlib[bcrypt]

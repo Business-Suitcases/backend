@@ -1,8 +1,8 @@
 from src.config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
-from src.auth.models import User
-from src.models.models import Tasks
+from src.auth.models import User, OAuthAccount
+from src.models.models import Task
 from src.database import Base
 from alembic import context
 
