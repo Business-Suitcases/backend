@@ -1,6 +1,12 @@
-from src.config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
+import sys
+import os
+
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
+
+sys.path.append(os.path.join(sys.path[0], 'src'))
+
+from src.config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 from src.auth.models import User, OAuthAccount
 from src.models.models import Task
 from src.database import Base

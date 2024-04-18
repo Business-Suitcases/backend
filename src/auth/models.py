@@ -1,9 +1,6 @@
-from datetime import datetime
-from turtle import back
 from typing import List
-from sqlalchemy.ext.declarative import declared_attr
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID, SQLAlchemyBaseOAuthAccountTableUUID
-from sqlalchemy import (TIMESTAMP, Boolean, Column, ForeignKey, String, Integer)
+from sqlalchemy import (Column, String, Integer)
 from sqlalchemy.orm import relationship, Mapped
 from src.database import Base
 
@@ -13,7 +10,7 @@ class OAuthAccount(SQLAlchemyBaseOAuthAccountTableUUID, Base):
     """
     Таблица аккаунтов OAuth
 
-    id: int - идентификатор аккаунта
+    id: uuid - идентификатор аккаунта
     account_email: str - почта аккаунта
     """
 
@@ -25,7 +22,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     """
     Таблица пользователей
     
-    id: int - идентификатор пользователя
+    id: uuid - идентификатор пользователя
     email: str - почта пользователя
     username: str - имя пользователя
     tg_id: int - идентификатор пользователя в телеграм

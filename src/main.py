@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
+
+
 from src.auth.schemas import UserCreate, UserRead
 from src.config import REDIS_HOST, REDIS_PORT, SECRET_AUTH
 from src.auth.base_config import auth_backend, fastapi_users
