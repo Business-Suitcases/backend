@@ -9,6 +9,7 @@ from src.auth.schemas import UserCreate, UserRead
 from src.config import REDIS_HOST, REDIS_PORT, SECRET_AUTH
 from src.auth.base_config import auth_backend, fastapi_users
 from src.auth.manager import google_oauth_client
+from src.tasks.routers import router as tasks_router
 
 
 app = FastAPI(
@@ -45,6 +46,10 @@ app.include_router(
     prefix="/auth/associate/google",
     tags=["Google OAuth2"],
 )
+
+
+# Роутер для работы с задачами.
+app.include_router(tasks_router)
 
 current_user = fastapi_users.current_user()
 
