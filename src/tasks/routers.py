@@ -1,12 +1,10 @@
-from src.main import app
 from sqlalchemy import select
 from src.tasks.models import Task
 from src.tasks.schemas import TaskCreate, TaskUpdate
 from fastapi_cache.decorator import cache
 from fastapi import APIRouter, Depends, HTTPException
-from src.tasks.models import Task
 from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_async_session
+from src.database import get_async_session
 from datetime import datetime
 from datetime import timedelta
 
@@ -22,28 +20,27 @@ router = APIRouter(
 # Роутер для получения всех задач
 @router.get('')
 async def get(
-    operation_type: str,
-    category_type: str,
+    criterion: str,
+    category: str,
     session: AsyncSession = Depends(get_async_session)
 ):
     """
     Данная функция является обработчиком HTTP GET запроса для определенного маршрута. Она принимает следующие аргументы:
 
-- `operation_type` (тип `str`): представляет тип операции.
-- `category_type` (тип `str`): представляет тип категории.
+- `criterion` (тип `str`): представляет критерий, по которому необходимо получить задачи.
+- `category` (тип `str`): представляет категорию, по которой необходимо получить задачи.
 - `session` (тип `AsyncSession`, по умолчанию `Depends(get_async_session)`): представляет асинхронную сессию для работы с базой данных.
 
 Внутри функции происходит следующее:
 
-1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца, соответствующего `category_type`, равно `operation_type`.
+1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца `category` равно `criterion`.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
 4. Функция возвращает словарь с данными, включающий статус код "200", все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
 
-Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).where(Task.c[f'{category_type}'] == operation_type)
+        query = select(Task).where(Task[f'{category}'] == criterion)
         result = await session.execute(query)
 
         return {
@@ -184,7 +181,7 @@ async def delete(task_id: int, session: AsyncSession = Depends(get_async_session
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).where(Task.c.id == task_id)
+        query = select(Task).where(Task.id == task_id)
         result = await session.execute(query)
         session.delete(result.scalar())
         await session.commit()
@@ -229,7 +226,7 @@ async def get_by_id(task_id: int, session: AsyncSession = Depends(get_async_sess
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).where(Task.c.id == task_id)
+        query = select(Task).where(Task.id == task_id)
         result = await session.execute(query)
 
         return {
@@ -271,7 +268,7 @@ async def get_today(session: AsyncSession = Depends(get_async_session)):
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).where(Task.c.deadline == datetime.now().date())
+        query = select(Task).where(Task.deadline == datetime.now().date())
         result = await session.execute(query)
 
         return {
@@ -312,7 +309,7 @@ async def get_week(session: AsyncSession = Depends(get_async_session)):
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).where(Task.c.deadline >= datetime.now().date() and Task.c.deadline <= datetime.now().date() + timedelta(days=7))
+        query = select(Task).where(Task.deadline >= datetime.now().date() and Task.deadline <= datetime.now().date() + timedelta(days=7))
         result = await session.execute(query)
 
         return {
@@ -354,7 +351,7 @@ async def get_month(session: AsyncSession = Depends(get_async_session)):
     
     """
     try:
-        query = select(Task).where(Task.c.deadline >= datetime.now().date() and Task.c.deadline <= datetime.now().date() + timedelta(days=30))
+        query = select(Task).where(Task.deadline >= datetime.now().date() and Task.deadline <= datetime.now().date() + timedelta(days=30))
         result = await session.execute(query)
 
         return {
@@ -441,7 +438,7 @@ async def get_first_n(n: int, session: AsyncSession = Depends(get_async_session)
     try:
         query = select(Task).limit(n)
         result = await session.execute(query)
-
+        print(result.all())
         return {
             "status_code": "200",
             "data": result.all(),

@@ -14,7 +14,6 @@ class TaskCreate(BaseModel):
     lesson: str - название предмета
     type: Optional[str] - тип задачи
     deadline: Optional[datetime] - дедлайн задачи
-    user_id: Optional[int] - id пользователя
     notion_id: Optional[int] - id задачи в Notion
     """
 
@@ -23,7 +22,6 @@ class TaskCreate(BaseModel):
     lesson: str
     type: Optional[str]
     deadline: Optional[datetime]
-    user_id: Optional[int]
     notion_id: Optional[int]
 
 
@@ -38,7 +36,6 @@ class TaskRead(TaskCreate):
     lesson: str - название предмета
     type: Optional[str] - тип задачи
     deadline: Optional[datetime] - дедлайн задачи
-    user_id: Optional[int] - id пользователя
     notion_id: Optional[int] - id задачи в Notion
 
     """
@@ -59,7 +56,6 @@ class TaskUpdate(TaskCreate):
     lesson: str - название предмета
     type: Optional[str] - тип задачи
     deadline: Optional[datetime] - дедлайн задачи
-    user_id: Optional[int] - id пользователя
     notion_id: Optional[int] - id задачи в Notion
     """
 
