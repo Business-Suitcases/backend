@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, text
 from src.tasks.models import Task
 from src.tasks.schemas import TaskCreate, TaskUpdate
 from fastapi_cache.decorator import cache
@@ -7,6 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_async_session
 from datetime import datetime
 from datetime import timedelta
+from typing import Union
+from sqlalchemy import text
+from fastapi import APIRouter
+from src.tasks.models import Task
 
 
 router = APIRouter(
@@ -20,8 +24,6 @@ router = APIRouter(
 # Роутер для получения всех задач
 @router.get('')
 async def get(
-    criterion: str,
-    category: str,
     session: AsyncSession = Depends(get_async_session)
 ):
     """
@@ -36,21 +38,27 @@ async def get(
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца `category` равно `criterion`.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
 
     """
     try:
-        query = select(Task).where(Task[f'{category}'] == criterion)
-        result = await session.execute(query)
+        query = select(Task)
+        
+        row = await session.execute(query)
+        row = row.fetchall()
+
+        # Преобразование результатов запроса в список словарей
+        res = [row._asdict() for row in row]
 
         return {
-            "status_code": "200",
-            "data": result.all(),
+            "status_code": 200,
+            "data": res,
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -89,13 +97,14 @@ async def create(task: TaskCreate, session: AsyncSession = Depends(get_async_ses
         await session.commit()
 
         return {
-            "status_code": "201",
+            "status_code": 201,
             "data": new_task,
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -126,7 +135,7 @@ async def update(task: TaskUpdate, session: AsyncSession = Depends(get_async_ses
 1. Создается экземпляр модели `Task` с аргументами, переданными в `task`.
 2. Экземпляр модели добавляется в сессию `session`.
 3. Сессия фиксируется с помощью `session.commit()`.
-4. Функция возвращает словарь с данными, включающий статус код "200", обновленный объект задачи (`task`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, обновленный объект задачи (`task`), и `None` в поле "details".
 
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
@@ -136,17 +145,18 @@ async def update(task: TaskUpdate, session: AsyncSession = Depends(get_async_ses
         await session.commit()
 
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": new_task,
             "details": None
         }
     except Exception as e:
         # Обработка исключений:
         if "duplicate key value violates unique constraint" in str(e):
-            return HTTPException(status_code=400, detail="Task with this notion_id already exists.")
+            raise HTTPException(status_code=400, detail="Task with this notion_id already exists.")
         else:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-            return HTTPException(status_code=500, detail=str(e))
+            print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -176,7 +186,7 @@ async def delete(task_id: int, session: AsyncSession = Depends(get_async_session
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос удаляет запись из таблицы `Task`, где значение столбца `id` равно `task_id`.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Сессия фиксируется с помощью `session.commit()`.
-4. Функция возвращает словарь с данными, включающий статус код "200", `None` в поле "data", и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, `None` в поле "data", и `None` в поле "details".
 
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
@@ -187,13 +197,14 @@ async def delete(task_id: int, session: AsyncSession = Depends(get_async_session
         await session.commit()
 
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": None,
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -208,8 +219,8 @@ async def delete(task_id: int, session: AsyncSession = Depends(get_async_session
 
 
 # Роутер для получения задачи по идентификатору
-@router.get('/{task_id}')
-async def get_by_id(task_id: int, session: AsyncSession = Depends(get_async_session)):
+@router.get('/by_id')
+async def get_by_id(n: int, session: AsyncSession = Depends(get_async_session)):
     """
     Данная функция является обработчиком HTTP GET запроса для определенного маршрута. Она принимает следующие аргументы:
 
@@ -221,22 +232,23 @@ async def get_by_id(task_id: int, session: AsyncSession = Depends(get_async_sess
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца `id` равно `task_id`.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", первую полученную запись из базы данных (`result.scalar()`), и `None` в поле "details".
-
-Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
+4. Функция возвращает словарь с данными, включающий статус код 200, первую полученную запись из базы данных (`result.scalar()`), и `None` в поле "details".
     """
     try:
-        query = select(Task).where(Task.id == task_id)
+        query = select(Task).where(Task.id == n)
         result = await session.execute(query)
+        result = result.scalar()
 
         return {
-            "status_code": "200",
-            "data": result.scalar(),
+            "status_code": 200,
+            "data": result,
             "details": None
         }
+
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -263,7 +275,7 @@ async def get_today(session: AsyncSession = Depends(get_async_session)):
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца `deadline` равно текущей дате.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
 
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
@@ -272,13 +284,14 @@ async def get_today(session: AsyncSession = Depends(get_async_session)):
         result = await session.execute(query)
 
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": result.all(),
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -304,7 +317,7 @@ async def get_week(session: AsyncSession = Depends(get_async_session)):
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца `deadline` находится в текущей неделе.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
 
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
@@ -313,13 +326,14 @@ async def get_week(session: AsyncSession = Depends(get_async_session)):
         result = await session.execute(query)
 
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": result.all(),
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -345,7 +359,7 @@ async def get_month(session: AsyncSession = Depends(get_async_session)):
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task`, где значение столбца `deadline` находится в текущем месяце.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
 
 
     
@@ -355,13 +369,14 @@ async def get_month(session: AsyncSession = Depends(get_async_session)):
         result = await session.execute(query)
 
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": result.all(),
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -388,22 +403,23 @@ async def sort_by(sort_by: str, session: AsyncSession = Depends(get_async_sessio
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает все записи из таблицы `Task` и сортирует их по параметру, заданному в `sort_by`.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, все полученные записи из базы данных (`result.all()`), и `None` в поле "details".
 
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).order_by(Task.c[f'{sort_by}'])
+        query = select(Task).order_by(Task[f'{sort_by}'])
         result = await session.execute(query)
 
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": result.all(),
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
 
 
 
@@ -431,19 +447,20 @@ async def get_first_n(n: int, session: AsyncSession = Depends(get_async_session)
 1. Создается SQL-запрос с использованием библиотеки SQLAlchemy. Запрос выбирает первые `n` записей из таблицы `Task`.
 2. Запрос выполняется с помощью асинхронной сессии `session.execute(query)`.
 3. Результат выполнения запроса сохраняется в переменную `result`.
-4. Функция возвращает словарь с данными, включающий статус код "200", первые `n` полученных записей из базы данных (`result.all()`), и `None` в поле "details".
+4. Функция возвращает словарь с данными, включающий статус код 200, первые `n` полученных записей из базы данных (`result.all()`), и `None` в поле "details".
 
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
         query = select(Task).limit(n)
         result = await session.execute(query)
-        print(result.all())
+
         return {
-            "status_code": "200",
+            "status_code": 200,
             "data": result.all(),
             "details": None
         }
     except Exception as e:
         # Тут пока для отладки выводится сама ошибка, но в продакшене так делать нельзя
-        return HTTPException(status_code=500, detail=str(e))
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e), headers={"500": "Internal Server Error"})
