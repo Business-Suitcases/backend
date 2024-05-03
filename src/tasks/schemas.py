@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date
 
 
 class TaskCreate(BaseModel):
@@ -21,7 +21,7 @@ class TaskCreate(BaseModel):
     link: Optional[str]
     lesson: str
     type: Optional[str]
-    deadline: Optional[datetime]
+    deadline: Optional[date]
     notion_id: Optional[int]
 
 

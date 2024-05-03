@@ -1,4 +1,4 @@
-from sqlalchemy import select, text
+from sqlalchemy import select
 from src.tasks.models import Task
 from src.tasks.schemas import TaskCreate, TaskUpdate
 from fastapi_cache.decorator import cache
@@ -7,10 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_async_session
 from datetime import datetime
 from datetime import timedelta
-from typing import Union
-from sqlalchemy import text
 from fastapi import APIRouter
 from src.tasks.models import Task
+from src.tasks.utils import res_to_dict
 
 
 router = APIRouter(
@@ -44,15 +43,12 @@ async def get(
     try:
         query = select(Task)
 
-        row = await session.execute(query)
-        row = row.fetchall()
-
-        # Преобразование результатов запроса в список словарей
-        res = [row._asdict() for row in row]
+        res = await session.execute(query)
+        result = res_to_dict(res)
 
         return {
             "status_code": 200,
-            "data": res,
+            "data": result,
             "details": None
         }
     except Exception as e:
@@ -222,7 +218,7 @@ async def delete(task_id: int, session: AsyncSession = Depends(get_async_session
 
 # Роутер для получения задачи по идентификатору
 @router.get('/by_id')
-async def get_by_id(n: int, session: AsyncSession = Depends(get_async_session)):
+async def get_by_id(id: int, session: AsyncSession = Depends(get_async_session)):
     """
     Данная функция является обработчиком HTTP GET запроса для определенного маршрута. Она принимает следующие аргументы:
 
@@ -237,7 +233,7 @@ async def get_by_id(n: int, session: AsyncSession = Depends(get_async_session)):
 4. Функция возвращает словарь с данными, включающий статус код 200, первую полученную запись из базы данных (`result.scalar()`), и `None` в поле "details".
     """
     try:
-        query = select(Task).where(Task.id == n)
+        query = select(Task).where(Task.id == id)
         result = await session.execute(query)
         result = result.scalar()
 
@@ -283,11 +279,13 @@ async def get_today(session: AsyncSession = Depends(get_async_session)):
     """
     try:
         query = select(Task).where(Task.deadline == datetime.now().date())
-        result = await session.execute(query)
+
+        res = await session.execute(query)
+        result = res_to_dict(res)
 
         return {
             "status_code": 200,
-            "data": result.all(),
+            "data": result,
             "details": None
         }
     except Exception as e:
@@ -324,12 +322,13 @@ async def get_week(session: AsyncSession = Depends(get_async_session)):
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).where(Task.deadline >= datetime.now().date() and Task.deadline <= datetime.now().date() + timedelta(days=7))
-        result = await session.execute(query)
+        query = select(Task).where((Task.deadline >= datetime.now().date()) & (Task.deadline <= datetime.now().date() + timedelta(days=7)))
+        res = await session.execute(query)
+        result = res_to_dict(res)
 
         return {
             "status_code": 200,
-            "data": result.all(),
+            "data": result,
             "details": None
         }
     except Exception as e:
@@ -367,12 +366,13 @@ async def get_month(session: AsyncSession = Depends(get_async_session)):
     
     """
     try:
-        query = select(Task).where(Task.deadline >= datetime.now().date() and Task.deadline <= datetime.now().date() + timedelta(days=30))
-        result = await session.execute(query)
+        query = select(Task).where((Task.deadline >= datetime.now().date()) & (Task.deadline <= (datetime.now().date() + timedelta(days=30))))
+        res = await session.execute(query)
+        result = res_to_dict(res)
 
         return {
             "status_code": 200,
-            "data": result.all(),
+            "data": result,
             "details": None
         }
     except Exception as e:
@@ -410,12 +410,13 @@ async def sort_by(sort_by: str, session: AsyncSession = Depends(get_async_sessio
 Если в блоке `try` возникает исключение, то возвращается объект `HTTPException` с кодом состояния 500 и деталями ошибки, преобразованными в строку.
     """
     try:
-        query = select(Task).order_by(Task[f'{sort_by}'])
-        result = await session.execute(query)
+        query = select(Task).order_by(Task.__dict__[sort_by])
+        res = await session.execute(query)
+        result = res_to_dict(res)
 
         return {
             "status_code": 200,
-            "data": result.all(),
+            "data": result,
             "details": None
         }
     except Exception as e:
@@ -455,11 +456,12 @@ async def get_first_n(n: int, session: AsyncSession = Depends(get_async_session)
     """
     try:
         query = select(Task).limit(n)
-        result = await session.execute(query)
+        res = await session.execute(query)
+        result = res_to_dict(res)
 
         return {
             "status_code": 200,
-            "data": result.all(),
+            "data": result,
             "details": None
         }
     except Exception as e:
