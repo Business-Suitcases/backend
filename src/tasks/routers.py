@@ -43,7 +43,7 @@ async def get(
     """
     try:
         query = select(Task)
-        
+
         row = await session.execute(query)
         row = row.fetchall()
 
@@ -193,12 +193,14 @@ async def delete(task_id: int, session: AsyncSession = Depends(get_async_session
     try:
         query = select(Task).where(Task.id == task_id)
         result = await session.execute(query)
-        session.delete(result.scalar())
+
+        task = result.scalar()
+        await session.delete(task)
         await session.commit()
 
         return {
             "status_code": 200,
-            "data": None,
+            "data": task,
             "details": None
         }
     except Exception as e:
