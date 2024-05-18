@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from datetime import date
 
 
+
+
 class TaskCreate(BaseModel):
     """
 Данный класс описывает схему данных для создания задачи.
@@ -17,12 +19,12 @@ class TaskCreate(BaseModel):
     notion_id: Optional[int] - id задачи в Notion
     """
 
-    name: str
-    link: Optional[str]
-    lesson: str
-    type: Optional[str]
-    deadline: Optional[date]
-    notion_id: Optional[int]
+    name: str = 'Суть задачи'
+    link: Optional[str] = None
+    lesson: str = 'Название предмета'
+    type: Optional[str] = None
+    deadline: Optional[date] = None
+    notion_id: Optional[int] = None
 
 
 class TaskRead(TaskCreate):
@@ -44,13 +46,14 @@ class TaskRead(TaskCreate):
     pass
 
 
-class TaskUpdate(TaskCreate):
+class TaskUpdate(BaseModel):
 
     """
     Данный класс описывает схему данных для обновления задачи.
 
 Атрибуты:
 
+    id: int - id задачи
     name: str - название задачи
     link: Optional[str] - ссылка на задачу
     lesson: str - название предмета
@@ -59,4 +62,10 @@ class TaskUpdate(TaskCreate):
     notion_id: Optional[int] - id задачи в Notion
     """
 
-    pass
+    id: int
+    name: str | None = None
+    link: str | None = None
+    lesson: str | None = None
+    type: str | None = None
+    deadline: date | None = None
+    notion_id: int | None = None
